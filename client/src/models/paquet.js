@@ -170,9 +170,10 @@ export class Paquet {
     }
 
     getCarteLead(atout, petite) {
+
         let carteGagnante = this.main[0];
         let remporteur = this.joueur1;
-        for (let i = 1; i < 4; ++i) {
+        for (let i = 1; i < this.main.length; ++i) {
             let carte = this.main[i];
             if (carte.isAtout(atout) && !carteGagnante.isAtout(atout)) {
                 carteGagnante = carte;
