@@ -123,7 +123,7 @@ export class GetMain1Carte1 {
         ]
         const meilleure = new MeilleureCarte();
         const carte = meilleure.getMain1Carte1(cartes, Sorte.TREFLE, []);
-        const ok = carte.symbole === Symbole.JACK && carte.sorte === Sorte.COEUR;
+        const ok = carte.symbole === Symbole.JACK && cartes.sorte === Sorte.PIQUE;
         console.log(`${ok}: TestMeilleureCarte: getMain1Carte1: chienPasSec`);
     } 
     

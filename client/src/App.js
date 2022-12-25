@@ -15,6 +15,7 @@ import { TestComponent } from "./tests/test-component";
 import { Tests } from "./tests/tests";
 
 const { Header, Content } = Layout;
+const delaiAuto = 500;
 
 class App extends Component {
   constructor(props) {
@@ -179,7 +180,7 @@ class App extends Component {
       setTimeout(() => {
         this.nextAction();
         paquet.attendre = false;
-      }, 500);
+      }, delaiAuto);
     }
     if (action.type === ActionType.BRASSER) {
       this.partie.nextBrasse(this.state.paquet.points, this.state.mise);
@@ -191,7 +192,7 @@ class App extends Component {
       setTimeout(() => {
         this.tableRef.current.onCliqueCarte(this.state.paquet.getMeilleureCarte(action, this.state.mise.atout, this.state.mise.petite));
         paquet.attendre = false;
-      }, 500);
+      }, delaiAuto);
     }
   }
 

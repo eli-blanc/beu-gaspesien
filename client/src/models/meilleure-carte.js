@@ -158,10 +158,10 @@ export class MeilleureCarte {
                 let totPoints = 0;
                 for (let p of pointsSorte) {
                     const maitre = this.isCarteMaitre(p, mesCartes, pile, atout);
-                    totPoints += p.points;
+                    if (!maitre) totPoints += p.points;
                 }
                 const chiensSorte = chiens.filter(c => c.sorte === chien.sorte);
-                const ratio = Number(chiensSorte.length)/totPoints;
+                const ratio = totPoints/Number(chiensSorte.length);
                 ratios.push(new ChienInfo(chien, ratio));
             }
             const minRatio = Math.min(...ratios.map(r => r.ratio));

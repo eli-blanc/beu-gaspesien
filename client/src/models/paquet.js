@@ -251,13 +251,13 @@ export class Paquet {
         const joker = this.cartes.find(carte => carte.sorte === Sorte.JOKER);
         const blanche = this.cartes.find(carte => carte.sorte === Sorte.BLANCHE);
 
-        if (mise.sorte === Sorte.SANS_ATOUT) {
+        if (mise.atout === Sorte.SANS_ATOUT) {
             if (mise.petite) {
                 if (joker !== undefined) joker.rang = rang1 + 0.25;
                 if (blanche !== undefined) blanche.rang = rang1 + 0.75;
             } else {
-                if (joker !== undefined) joker.rang = rang1 - 0.75;
-                if (blanche !== undefined) blanche.rang = rang1 - 0.25;
+                if (joker !== undefined) joker.rang = rang1 - 0.25;
+                if (blanche !== undefined) blanche.rang = rang1 - 0.75;
             }
         } else {
             if (joker !== undefined) joker.rang = rang1 + 0.25;
