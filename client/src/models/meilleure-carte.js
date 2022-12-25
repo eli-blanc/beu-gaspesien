@@ -9,9 +9,9 @@ class AsInfo {
 }
 
 class ChienInfo {
-    constructor(chien) {
+    constructor(chien, ratio) {
         this.chien = chien;
-        this.ratio = 0;
+        this.ratio = ratio;
     }
 }
 
@@ -100,7 +100,7 @@ export class MeilleureCarte {
 
         // Cherche un chien
         const chien = this.getMeilleurChien(mesCartes, atout,pile,[]);
-        if (chien === !null) {
+        if (chien !== null) {
             return chien;
         }
 
@@ -113,6 +113,8 @@ export class MeilleureCarte {
         // À ce stade-ci, il ne reste que de l'atout, jouer la plus forte
         return mesCartes[mesCartes.length - 1];
     }
+
+    getCarte1() {}
 
     getCartesSeches(mesCartes, atout) {
         return mesCartes.filter(c => c.isSeche(mesCartes, atout) && !c.isAtout(atout));
@@ -159,7 +161,8 @@ export class MeilleureCarte {
                     totPoints += p.points;
                 }
                 const chiensSorte = chiens.filter(c => c.sorte === chien.sorte);
-                ratios.push(new ChienInfo(chien, chiensSorte.length/totPoints));
+                const ratio = Number(chiensSorte.length)/totPoints;
+                ratios.push(new ChienInfo(chien, ratio));
             }
             const minRatio = Math.min(...ratios.map(r => r.ratio));
             const chiensMinRatio = ratios.filter(r => r.ratio === minRatio);
@@ -170,12 +173,13 @@ export class MeilleureCarte {
 
     getPointSec(cartesSeches, priorite) {
         const beuSec = this.getBeuSec(cartesSeches);
-        if (beuSec !== null && priorite === 13) {
+        const dixSec = this.getDixSec(cartesSeches);
+
+        if (beuSec !== null && (priorite === 13 || dixSec === null)) {
             return beuSec;
         }
 
-        const dixSec = this.getDixSec(cartesSeches);
-        if (dixSec !== null && priorite === 10) {
+        if (dixSec !== null) {
             return dixSec;
         }
         return null;

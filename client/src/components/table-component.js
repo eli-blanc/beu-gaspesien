@@ -5,7 +5,6 @@ import { CartesComponent } from './cartes-component';
 import { JoueurComponent } from './joueur-component';
 import { ActionType } from '../models/action';
 import { MainComponent } from './main-component';
-import { Sorte } from '../models/carte';
 
 export class TableComponent extends Component {
     constructor(props) {
@@ -19,10 +18,7 @@ export class TableComponent extends Component {
         }
         this.props.paquet.cliqueCarte(carte, this.props.action.joueur, this.props.action);
         if (this.props.action.cptJoueur === 0) {
-            this.props.paquet.sorteDemandee = carte.sorte;
-            if (carte.sorte === Sorte.BLANCHE || carte.sorte === Sorte.JOKER) {
-                this.props.paquet.sorteDemandee = this.props.mise.atout;
-            }
+            this.props.paquet.setSorteDemandee(carte, this.props.mise.atout);
         }
 
         if (this.props.action.type === ActionType.DISCARTER && carte.isAtout(this.props.mise.atout)) {

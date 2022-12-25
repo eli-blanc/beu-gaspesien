@@ -10,6 +10,7 @@ To start a game:
 3) The partner must discard 2 cards (no points allowed, notify other if trump)
 4) the bidder clicks on Gager and chooses the trump
 5) The next player starts to play
+
 Tips:
 - double click to play/send a card
 - points are 10 and 25

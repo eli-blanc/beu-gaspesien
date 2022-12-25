@@ -87,7 +87,6 @@ class App extends Component {
 
   onGager() {
     let mise;
-    debugger
     if (this.state.mise === null || this.state.action.type === ActionType.BRASSER) {
       mise = new Mise();
       this.setState({

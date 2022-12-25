@@ -136,9 +136,13 @@ export class Paquet {
         }
 
         this.points = [0, 0];
+
+        for (let joueur of this.joueurs) {
+            joueur.resetRefuseSorte();
+        }
     }
 
-    cliqueCarte(carte, joueur, action) {
+    cliqueCarte(carte, joueur, action, atout) {
         if (joueur !== null) {
             switch (action.type) {
                 case ActionType.PASSER: {
@@ -149,22 +153,25 @@ export class Paquet {
                     partenaire.cartes.sort((a, b) => a.rang - b.rang);
                     const idx = joueur.cartes.findIndex((item) => item.key === carte.key);
                     joueur.cartes.splice(idx, 1);
-                    break;
+                    return;
                 }
                 case ActionType.DISCARTER: {
                     const idx = joueur.cartes.findIndex((item) => item.key === carte.key);
                     joueur.cartes.splice(idx, 1);
-                    break;
+                    return;
                 }
                 case ActionType.JOUER: {
-                    const joueurIdx = action.joueur.getIndex();
+                    const joueurIdx = joueur.getIndex();
                     this.main[joueurIdx] = carte.copy();
                     this.pile.push(carte);
+                    joueur.setRefuseSorte(this.sorteDemandee, carte, atout);
                     const idx = joueur.cartes.findIndex((item) => item.key === carte.key);
                     joueur.cartes.splice(idx, 1);
-                    break;
+                    return;
                 }
-                default: { }
+                default: {
+                    return;
+                }
             }
         }
     }
@@ -266,8 +273,12 @@ export class Paquet {
         const meilleureCarte = new MeilleureCarte();
         // 1re main, 1re carte
         if (action.cptCarte === 0 && action.cptJoueur === 0) {
-            return meilleureCarte.getMain1Carte1(cartes, atout, this.pile, this.cartes);
+            return meilleureCarte.getMain1Carte1(cartes, atout, this.pile);
         }
+        // 1re carte
+        // if (action.cptJoueur === 0) {
+        //     return meilleureCarte.getCarte1(cartes, atout, this.pile);
+        // }
         // Dernière carte de la main
         if (action.cptJoeur === 3) {
             const lead = this.getCarteLead(atout, petite);
@@ -278,5 +289,13 @@ export class Paquet {
 
     getCarte(poids, sorte) {
         return this.cartes.find(c => c.sorte === sorte && c.poids === poids);
+    }
+
+    setSorteDemandee(carte, atout) {
+        if (carte.isAtout(atout)) {
+            this.sorteDemandee = atout;
+        } else {
+            this.sorteDemandee = carte.sorte;
+        }
     }
 }

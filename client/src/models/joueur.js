@@ -1,5 +1,14 @@
 import { Sorte } from "./carte";
 
+export class refuseSorte {
+    constructor(sorte) {
+        // Sorte
+        this.sorte = sorte;
+        // True si a déjà refusé
+        this.refuse = false;
+    }
+}
+
 export class Joueur {
     constructor(nom, index, partenaire) {
         this.cartes = [];
@@ -8,6 +17,7 @@ export class Joueur {
         this.partenaire = partenaire;
         this.actif = false;
         this.equipeIdx = this.index % 2;
+        this.refuseSorte = [new refuseSorte(Sorte.COEUR), new refuseSorte(Sorte.PIQUE), new refuseSorte(Sorte.CARREAU), new refuseSorte(Sorte.TREFLE)];
     }
 
     getNom() {
@@ -28,6 +38,35 @@ export class Joueur {
 
     getCartes() {
         return this.cartes;
+    }
+
+    getRefuseSorte(sorte) {
+        const item = this.refuseSorte.find(i => i.sorte === sorte);
+        if (item !== undefined) {
+            return item.refuse;
+        }
+    }
+
+    setRefuseSorte(sorteDemandee, carte, atout) {
+        if (sorteDemandee === null) {
+            return;
+        }
+        let sorte = carte.sorte;
+        if (carte.isAtout(atout)) {
+            sorte = atout;
+        }
+        if (sorte !== sorteDemandee) {
+            const item = this.refuseSorte.find(i => i.sorte === sorteDemandee);
+            if (item !== undefined) {
+                item.refuse = true;
+            }
+        }
+    }
+
+    resetRefuseSorte() {
+        for(let sorte of this.refuseSorte) {
+            sorte.refuse = false;
+        }
     }
 
     compteSorte(sorte, atout) {

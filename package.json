@@ -16,7 +16,8 @@
     "bcryptjs": "^2.4.3",
     "exists": "^1.0.1",
     "express": "^4.18.1",
-    "missing": "^0.0.1"
+    "missing": "^0.0.1",
+    "react-scripts": "^5.0.1"
   },
   "engines": {
     "node": "18.7.0"

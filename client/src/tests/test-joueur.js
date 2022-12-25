@@ -4,9 +4,10 @@ import { Paquet } from "../models/paquet";
 
 export class TestJoueur {
     runAll() {
-
         const compteSorte = new CompteSorte();
         compteSorte.runAll();
+        const setRefuseSorte = new SetRefuseSorte();
+        setRefuseSorte.runAll();
     }
 }
 
@@ -45,4 +46,25 @@ export class CompteSorte {
         const ok = joueur.compteSorte(Sorte.PIQUE, Sorte.PIQUE) === 2;
         console.log(`${ok}: TestJoueur: CompteSorte: bibittes`);
     }   
+} 
+
+// Tester la méthode Joueur.setRefuseSorte(carte, refuse, atout)
+export class SetRefuseSorte {
+    constructor() {
+        this.paquet = new Paquet(true);
+    }
+
+    runAll() {
+        this.droitRefus();
+        // this.droitRefusAtout();
+    }
+
+    // Peut refuser la prochaine fois
+    droitRefus() {
+        const carte = this.paquet.getCarte(8, Sorte.CARREAU);
+        const joueur = this.paquet.getJoueur1();
+        joueur.setRefuseSorte(Sorte.PIQUE, carte, Sorte.COEUR);
+        const ok = joueur.getRefuseSorte(Sorte.PIQUE)
+        console.log(`${ok}: TestJoueur: SetRefuseSorte: droitRefus`);
+    }
 } 
