@@ -1,5 +1,5 @@
 import { Sorte, Symbole } from "../../models/carte";
-import { MeilleureCarte } from "../../models/meilleure-carte";
+import { Joueur } from "../../models/joueur";
 import { Paquet } from "../../models/paquet";
 
 export class GetCarte4 {
@@ -24,8 +24,9 @@ export class GetCarte4 {
             this.paquet.getCarte(11, Sorte.TREFLE)
         ]
         const atout = Sorte.TREFLE;
-        const meilleure = new MeilleureCarte();
-        const carte = meilleure.getCarte4(Sorte.COEUR, atout, cartes)
+        const joueur = new Joueur('Gilberte', 0, 'Georgette');
+        joueur.setCartes(cartes);
+        const carte = this.paquet.getCarte4(joueur, Sorte.COEUR, atout, cartes)
         const ok = carte.symbole === Symbole.ROI && carte.sorte === Sorte.COEUR;
         console.log(`${ok}: TestMeilleureCarte: getCarte4: partenaireAvecPoints`);
     }    

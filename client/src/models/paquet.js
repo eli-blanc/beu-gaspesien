@@ -1,25 +1,12 @@
 import { ActionType } from "./action";
 import { Carte, Sorte, Symbole } from "./carte";
 import { Joueur } from "./joueur";
-import { MeilleureCarte } from "./meilleure-carte";
+import { getMeilleurChien, isCarteMaitre, MeilleureCarte, piger } from "./meilleure-carte";
 
 export class Paquet {
     constructor(avecQuettee) {
-        this.cartes = [];
-        let rang = 0;
-        for (let sorte of [Sorte.COEUR, Sorte.PIQUE, Sorte.CARREAU, Sorte.TREFLE]) {
-            let poids = 7;
-            for (let symbole of [Symbole.SEPT, Symbole.HUIT, Symbole.NEUF, Symbole.DIX, Symbole.JACK, Symbole.DAME, Symbole.ROI, Symbole.AS]) {
-                this.cartes.push(new Carte(rang++, sorte, symbole, poids++));
-            }
-        }
-
-        this.quettee = null;
-        if (avecQuettee) {
-            this.quettee = [];
-            this.cartes.push(new Carte(rang++, Sorte.JOKER, '', 15));
-            this.cartes.push(new Carte(rang, Sorte.BLANCHE, '', 16));
-        }
+        this.avecQuettee = avecQuettee;
+        this.initCartes();
 
         this.joueur1 = new Joueur('Gilberte', 0, 'Georgette');
         this.joueur2 = new Joueur('Xavier', 1, 'Alexis');
@@ -39,6 +26,24 @@ export class Paquet {
         this.points = [0, 0];
 
         this.brasser();
+    }
+
+    initCartes() {
+        this.cartes = [];
+        let rang = 0;
+        for (let sorte of [Sorte.COEUR, Sorte.PIQUE, Sorte.CARREAU, Sorte.TREFLE]) {
+            let poids = 7;
+            for (let symbole of [Symbole.SEPT, Symbole.HUIT, Symbole.NEUF, Symbole.DIX, Symbole.JACK, Symbole.DAME, Symbole.ROI, Symbole.AS]) {
+                this.cartes.push(new Carte(rang++, sorte, symbole, poids++));
+            }
+        }
+
+        this.quettee = null;
+        if (this.avecQuettee) {
+            this.quettee = [];
+            this.cartes.push(new Carte(rang++, Sorte.JOKER, '', 15));
+            this.cartes.push(new Carte(rang, Sorte.BLANCHE, '', 16));
+        }
     }
 
     setJoueurActif(joueurActif) {
@@ -115,28 +120,30 @@ export class Paquet {
     }
 
     brasser() {
-        // Remet les bibittes dans l'ordre initial        
-        const joker = this.cartes.find(carte => carte.sorte === Sorte.JOKER);
-        joker.rang = 32;
-        const blanche = this.cartes.find(carte => carte.sorte === Sorte.BLANCHE);
-        blanche.rang = 33;
+        // Paquet neuf
+        this.initCartes();
+
+        // Mélange
         for (let i = this.cartes.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * i);
             const temp = this.cartes[i];
             this.cartes[i] = this.cartes[j];
             this.cartes[j] = temp;
         }
+
+        // Passe aux joueurs
         this.joueur1.cartes = this.cartes.slice(0, 8).sort((a, b) => a.rang - b.rang);
         this.joueur2.cartes = this.cartes.slice(8, 16).sort((a, b) => a.rang - b.rang);
         this.joueur3.cartes = this.cartes.slice(16, 24).sort((a, b) => a.rang - b.rang);
         this.joueur4.cartes = this.cartes.slice(24, 32).sort((a, b) => a.rang - b.rang);
 
+        // Passe quettée
         if (this.quettee !== null) {
             this.quettee = this.cartes.slice(32, 34).sort((a, b) => a.rang - b.rang);
         }
 
+        // Réinitialize
         this.points = [0, 0];
-
         for (let joueur of this.joueurs) {
             joueur.resetRefuseSorte();
         }
@@ -151,22 +158,23 @@ export class Paquet {
                     copie.surelevee = true;
                     partenaire.cartes.push(copie);
                     partenaire.cartes.sort((a, b) => a.rang - b.rang);
-                    const idx = joueur.cartes.findIndex((item) => item.key === carte.key);
-                    joueur.cartes.splice(idx, 1);
+                    this.enleveCarte(carte, joueur.cartes);
                     return;
                 }
                 case ActionType.DISCARTER: {
-                    const idx = joueur.cartes.findIndex((item) => item.key === carte.key);
-                    joueur.cartes.splice(idx, 1);
+                    this.enleveCarte(carte, joueur.cartes);
+                    this.enleveCarte(carte, this.cartes);
+                    this.pile.push(carte);
                     return;
                 }
                 case ActionType.JOUER: {
                     const joueurIdx = joueur.getIndex();
                     this.main[joueurIdx] = carte.copy();
                     this.pile.push(carte);
+
                     joueur.setRefuseSorte(this.sorteDemandee, carte, atout);
-                    const idx = joueur.cartes.findIndex((item) => item.key === carte.key);
-                    joueur.cartes.splice(idx, 1);
+                    this.enleveCarte(carte, joueur.cartes);
+                    this.enleveCarte(carte, this.cartes);
                     return;
                 }
                 default: {
@@ -174,6 +182,11 @@ export class Paquet {
                 }
             }
         }
+    }
+
+    enleveCarte(carte, cartes) {
+        const idx = cartes.findIndex((item) => item.key === carte.key);
+        cartes.splice(idx, 1);
     }
 
     getCarteLead(atout, petite) {
@@ -268,23 +281,23 @@ export class Paquet {
         }
     }
 
-    getMeilleureCarte(action, atout, petite) {
+    getMeilleureCarte(action, mise) {
         const cartes = action.joueur.cartes;
         const meilleureCarte = new MeilleureCarte();
         // 1re main, 1re carte
         if (action.cptCarte === 0 && action.cptJoueur === 0) {
-            return meilleureCarte.getMain1Carte1(cartes, atout, this.pile);
+            return meilleureCarte.getMain1Carte1(cartes, mise.atout, this.pile);
         }
         // 1re carte
-        // if (action.cptJoueur === 0) {
-        //     return meilleureCarte.getCarte1(cartes, atout, this.pile);
-        // }
+        if (action.cptJoueur === 0) {
+            return this.getCarte1(action.joueur, mise, this.pile, this.cartes);
+        }
         // Dernière carte de la main
         if (action.cptJoeur === 3) {
-            const lead = this.getCarteLead(atout, petite);
-            return meilleureCarte.getCarte4(this.sorteDemandee, cartes);
+            const lead = this.getCarteLead(mise.atout, mise.petite);
+            return this.getCarte4(action.joueur, this.sorteDemandee, cartes);
         }
-        return cartes.find(c => !c.isDisabled(cartes, this.sorteDemandee, atout));
+        return cartes.find(c => !c.isDisabled(cartes, this.sorteDemandee, mise.atout));
     }
 
     getCarte(poids, sorte) {
@@ -297,5 +310,125 @@ export class Paquet {
         } else {
             this.sorteDemandee = carte.sorte;
         }
+    }
+
+    adversairesAtout(joueur, atout) {
+        if (joueur.getIndex() % 2 === 0) {
+            return !this.joueur2.getRefuseSorte(atout) || !this.joueur4.getRefuseSorte(atout);
+        }
+
+        return !this.joueur1.getRefuseSorte(atout) || !this.joueur3.getRefuseSorte(atout);
+    }
+
+    getCarte1(joueur, mise, pile, cartesRestantes) {
+
+        const mesCartes = joueur.getCartes();
+        const cartesAtout = joueur.getCartes().filter(c => c.isAtout(mise.atout));
+        const adversairesAtout = this.adversairesAtout(joueur);
+        if (cartesAtout.length > 0) {
+            // Adversaires pas d'atout et j'en ai plus d'un
+            if (!adversairesAtout && cartesAtout.length > 1) {
+                return this.piger(cartesAtout, 'max');
+            }
+
+            const joueurGage = mise.joueur === joueur.getNom();
+            const equipeGage = joueurGage || mise.joueur === joueur.getPartenaire();
+
+            if (equipeGage) {
+
+                if (cartesAtout.length > 1 || !joueurGage) {
+
+                    // Carte maître
+                    const atoutMax = piger(cartesAtout, 'max');
+                    if (isCarteMaitre(atoutMax, mesCartes, pile, mise.atout)) {
+                        return atoutMax;
+                    }
+
+                    // Adversaire pas d'atout
+                    if (!adversairesAtout) {
+                        return piger(cartesAtout, 'max');
+                    }
+
+                    const atoutsPasPoint = cartesAtout.filter(c => c.points === 0);
+                    
+                    if (atoutsPasPoint.length > 0) {
+                        // Partenaire gagé
+                        if (mise.joueur === joueur.partenaire) {
+                            // Plus gros atout qui n'est pas un point
+                            if (atoutsPasPoint.length > 0) {
+                                return piger(atoutsPasPoint, 'max');
+                            }
+                        }
+
+                        // Plus petit atout qui n'est pas un point
+                        return piger(atoutsPasPoint, 'min');
+                    }
+                }
+            }
+        }
+        return joueur.cartes[0];
+    }
+
+    getCarte4(joueur, sorteDemandee, atout) {
+
+        const mesCartes = joueur.getCartes();
+        const cartesPossibles = mesCartes.filter(c => !c.isDisabled(mesCartes, sorteDemandee, atout));
+
+        const lead = this.getCarteLead();
+        // Partenaire lead
+        if (lead.joueur === joueur.getPartenaire()) {
+
+            // Atout demandé et disponible
+            if (sorteDemandee === atout && !joueur.getRefuseSorte(atout)) {
+                // Plus gros atout
+                return piger(cartesPossibles, 'max');
+            }
+
+            // Plus gros point
+            const points = cartesPossibles.filter(c => c.points > 0);
+            if (points.length > 0) {
+                return piger(points, 'max');
+            }
+
+            // Meilleur chien
+            const chien = getMeilleurChien(mesCartes, atout, this.pile);
+            if (chien !== null) {
+                return chien;
+            }
+        } 
+        // Adversaire lead
+        else {
+            const points = this.main.filter(c => c.points > 0);
+
+            // Points en jeu
+            if (points.length > 0) {
+
+                // A sorte demandee
+                if (!joueur.getRefuseSorte(sorteDemandee)) {
+                    // Carte plus forte
+                    const cartesRemporte = cartesPossibles.filter(c => c.rang > lead.carte.rang);
+                    if (cartesRemporte.length > 0) {
+                        return piger(cartesRemporte, 'min');
+                    }
+                    const cartesPasPoint = cartesPossibles.filter(c => c.points === 0);
+                    if (cartesPasPoint.length > 0) {
+                        return piger(cartesPasPoint, 'min');
+                    }
+                    return piger(cartesPossibles, 'min')
+                }
+                const cartesAtout = cartesPossibles.filter(c => c.isAtout(atout));
+                // Coupe
+                if (cartesAtout.length > 0) {                    
+                    const pointsAtout = cartesAtout.filter(c => c.points > 0);
+                    // Avec plus gros point
+                    if (pointsAtout.length > 0) {
+                        return piger(pointsAtout, 'max');
+                    }
+                    // Avec plus petit atout
+                    return piger(cartesAtout, 'min');
+                }
+            }
+        }
+        return joueur.cartes[0];
     }
 }

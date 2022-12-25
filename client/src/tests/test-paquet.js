@@ -1,12 +1,21 @@
 import { Sorte } from "../models/carte";
 import { Paquet } from "../models/paquet";
+import { GetCarte1 } from "./test-meilleure-carte/test-get-carte1";
+import { GetCarte4 } from "./test-meilleure-carte/test-get-carte4";
 
 export class TestPaquet {
     runAll() {
         const getCarteLead = new GetCarteLead();
         getCarteLead.runAll();
+
         const trierBibittes = new TrierBibittes();
         trierBibittes.runAll();
+
+        const getCarte1 = new GetCarte1();
+        getCarte1.runAll();
+
+        const getCarte4 = new GetCarte4();
+        getCarte4.runAll();
     }
 }
 
@@ -99,9 +108,7 @@ export class GetCarteLead {
         const ok = lead.carte === paquet.main[2] && lead.joueur.index === 2 && lead.points === 10;
         console.log(`${ok}: TestPaquet: getCarteLead: petiteAtout`);
     }
-} 
-
-
+}
 
 // Tester la méthode Paquet.trierBibittes(atout, petite)
 export class TrierBibittes {
